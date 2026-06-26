@@ -1,0 +1,75 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+df = pd.read_csv('data/patient.csv')
+#Parsing The Data
+df['confirmed_date'] = pd.to_datetime(df['confirmed_date'], dayfirst=True)
+df['released_date'] = pd.to_datetime(df['released_date'], dayfirst=True)
+df['deceased_date'] = pd.to_datetime(df['deceased_date'], dayfirst=True)
+df['age'] = 2020 - df['birth_year']
+released = df[df['state'] == 'released'].copy()
+released['recovery_days'] = (released['released_date'] - released['confirmed_date']).dt.days
+#Chart 1: Outcome Plotting
+df['state'].value_counts().plot(kind='bar')
+plt.title('Patient Outcomes')
+plt.xlabel('Outcome')
+plt.ylabel('Number of Patients')
+plt.tight_layout()
+plt.savefig('outputs/01_patient_outcomes.png')
+plt.close()
+print("Chart 1 saved")
+#Chart 2: Gender Distribution
+df['sex'].value_counts().plot(kind='bar', color=['steelblue', 'salmon'])
+plt.title('Gender Distribution')
+plt.xlabel('Sex')
+plt.ylabel('Number of Patients')
+plt.tight_layout()
+plt.savefig('outputs/02_gender_distribution.png')
+plt.close()
+print("Chart 2 saved")
+#Chart 3: Age Distribution
+sns.histplot(df['age'].dropna(), bins=20, kde=True)
+plt.title('Age Distribution (n=292 patients with recorded birth year)')
+plt.xlabel('Age')
+plt.ylabel('Number of Patients')
+plt.tight_layout()
+plt.savefig('outputs/03_age_distribution.png')
+plt.close()
+print("Chart 3 saved")
+#Chart 4: Regional Case Concentration
+df['region'].value_counts().head(15).plot(kind='barh')
+plt.title('Top 15 Regions by Confirmed Cases')
+plt.xlabel('Number of Cases')
+plt.ylabel('Region')
+plt.tight_layout()
+plt.savefig('outputs/04_region_distribution.png')
+plt.close()
+print("Chart 4 saved")
+#Chart 5 : Infection Reasons
+df['infection_reason'].value_counts().head(10).plot(kind='bar')
+plt.title('Top Infection Reasons (where recorded)')
+plt.xlabel('Reason')
+plt.ylabel('Number of Cases')
+plt.xticks(rotation=45, ha='right')
+plt.tight_layout()
+plt.savefig('outputs/05_infection_reasons.png')
+plt.close()
+print("Chart 5 saved")
+#RECOVERY TIME VS AGE
+recovery_age = released.dropna(subset=['age', 'recovery_days'])
+print(f"Patients with both age and recovery data: {len(recovery_age)}")
+sns.scatterplot(data=recovery_age, x='age', y='recovery_days')
+plt.title('Recovery Duration vs Age')
+plt.xlabel('Age')
+plt.ylabel('Recovery Days')
+plt.tight_layout()
+plt.savefig('outputs/06_recovery_vs_age.png')
+plt.close()
+print("Chart 6 saved")
+#Correlation check
+corr_data = released[['age', 'contact_number', 'infection_order', 'recovery_days']]
+print("Non-null counts per column:")
+print(corr_data.count())
+corr_matrix = corr_data.corr()
+print("\nCorrelation with recovery_days:")
+print(corr_matrix['recovery_days'])
